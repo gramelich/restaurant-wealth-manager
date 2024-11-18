@@ -6,6 +6,9 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Overview } from "@/components/dashboard/Overview";
 import { TransactionList } from "@/components/dashboard/TransactionList";
 import { BillList } from "@/components/dashboard/BillList";
+import { ChartOfAccountsForm } from "@/components/dashboard/ChartOfAccountsForm";
+import { PaymentMethodForm } from "@/components/dashboard/PaymentMethodForm";
+import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -13,6 +16,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [transactions, setTransactions] = useState([]);
   const [bills, setBills] = useState([]);
+  const [chartOfAccountsOpen, setChartOfAccountsOpen] = useState(false);
+  const [paymentMethodOpen, setPaymentMethodOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -63,6 +68,14 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 flex justify-end space-x-4">
+          <Button onClick={() => setChartOfAccountsOpen(true)}>
+            Novo Plano de Contas
+          </Button>
+          <Button onClick={() => setPaymentMethodOpen(true)}>
+            Nova Forma de Pagamento
+          </Button>
+        </div>
         {activeTab === "overview" && (
           <Overview transactions={transactions} bills={bills} />
         )}
@@ -71,6 +84,16 @@ const Dashboard = () => {
         )}
         {activeTab === "bills" && <BillList bills={bills} />}
       </main>
+      <ChartOfAccountsForm
+        open={chartOfAccountsOpen}
+        onOpenChange={setChartOfAccountsOpen}
+        onSuccess={() => window.location.reload()}
+      />
+      <PaymentMethodForm
+        open={paymentMethodOpen}
+        onOpenChange={setPaymentMethodOpen}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 };

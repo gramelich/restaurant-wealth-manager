@@ -9,6 +9,7 @@ interface BillListProps {
 
 export const BillList = ({ bills }: BillListProps) => {
   const [open, setOpen] = useState(false);
+  const [editData, setEditData] = useState<any>(null);
 
   const columns = [
     {
@@ -44,6 +45,23 @@ export const BillList = ({ bills }: BillListProps) => {
         return categories[category as keyof typeof categories] || category;
       },
     },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        return (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setEditData(row.original);
+              setOpen(true);
+            }}
+          >
+            Editar
+          </Button>
+        );
+      },
+    },
   ];
 
   return (
@@ -58,7 +76,14 @@ export const BillList = ({ bills }: BillListProps) => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <Button onClick={() => setOpen(true)}>Nova Conta</Button>
+          <Button
+            onClick={() => {
+              setEditData(null);
+              setOpen(true);
+            }}
+          >
+            Nova Conta
+          </Button>
         </div>
       </div>
       <div className="mt-8">
@@ -68,6 +93,7 @@ export const BillList = ({ bills }: BillListProps) => {
         open={open}
         onOpenChange={setOpen}
         onSuccess={() => window.location.reload()}
+        editData={editData}
       />
     </div>
   );

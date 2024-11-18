@@ -11,34 +11,123 @@ export type Database = {
     Tables: {
       bills: {
         Row: {
+          account_id: string | null
+          actual_amount: number | null
           amount: number
           category: string | null
           created_at: string | null
           description: string
           due_date: string
           id: string
+          interest_amount: number | null
           paid: boolean | null
           paid_date: string | null
+          payment_method_id: string | null
         }
         Insert: {
+          account_id?: string | null
+          actual_amount?: number | null
           amount: number
           category?: string | null
           created_at?: string | null
           description: string
           due_date: string
           id?: string
+          interest_amount?: number | null
           paid?: boolean | null
           paid_date?: string | null
+          payment_method_id?: string | null
         }
         Update: {
+          account_id?: string | null
+          actual_amount?: number | null
           amount?: number
           category?: string | null
           created_at?: string | null
           description?: string
           due_date?: string
           id?: string
+          interest_amount?: number | null
           paid?: boolean | null
           paid_date?: string | null
+          payment_method_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bills_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bills_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chart_of_accounts: {
+        Row: {
+          active: boolean | null
+          code: string
+          created_at: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          type: string
+        }
+        Insert: {
+          active?: boolean | null
+          code: string
+          created_at?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          type: string
+        }
+        Update: {
+          active?: boolean | null
+          code?: string
+          created_at?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_of_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "chart_of_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_methods: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
