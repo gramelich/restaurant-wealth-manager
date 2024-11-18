@@ -18,6 +18,7 @@ const Dashboard = () => {
   const [bills, setBills] = useState([]);
   const [chartOfAccountsOpen, setChartOfAccountsOpen] = useState(false);
   const [paymentMethodOpen, setPaymentMethodOpen] = useState(false);
+  const [filter, setFilter] = useState({ date: "", type: "" });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,13 +29,14 @@ const Dashboard = () => {
 
     fetchTransactions();
     fetchBills();
-  }, [navigate]);
+  }, [navigate, filter]);
 
   const fetchTransactions = async () => {
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
-      .order("date", { ascending: false });
+      .order("date", { ascending: false })
+      .match(filter); // Aplicando filtro aqui
 
     if (error) {
       toast({
@@ -51,7 +53,8 @@ const Dashboard = () => {
     const { data, error } = await supabase
       .from("bills")
       .select("*")
-      .order("due_date", { ascending: true });
+      .order("due_date", { ascending: true })
+      .match(filter); // Aplicando filtro aqui
 
     if (error) {
       toast({
@@ -67,23 +70,38 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 flex justify-end space-x-4">
-          <Button onClick={() => setChartOfAccountsOpen(true)}>
-            Novo Plano de Contas
-          </Button>
-          <Button onClick={() => setPaymentMethodOpen(true)}>
-            Nova Forma de Pagamento
-          </Button>
+      <div className="flex">
+        <div className="w-1/4 bg-gray-200 p-4">
+          {/* Menu lateral com navegação entre abas */}
+          <Button onClick={() => setActiveTab("overview")}>Dashboard</Button>
+          <Button onClick={() => setActiveTab("transactions")}>Transações</Button>
+          <Button onClick={() => setActiveTab("bills")}>Contas</Button>
         </div>
-        {activeTab === "overview" && (
-          <Overview transactions={transactions} bills={bills} />
-        )}
-        {activeTab === "transactions" && (
-          <TransactionList transactions={transactions} />
-        )}
-        {activeTab === "bills" && <BillList bills={bills} />}
-      </main>
+        <main className="flex-1 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="mb-6">
+            <input
+              type="date"
+              onChange={(e) => setFilter((prev) => ({ ...prev, date: e.target.value }))}
+            />
+            <select
+              onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
+            >
+              <option value="">Tipo</option>
+              <option value="expense">Despesa</option>
+              <option value="income">Receita</option>
+            </select>
+          </div>
+
+          {activeTab === "overview" && (
+            <Overview transactions={transactions} bills={bills} />
+          )}
+          {activeTab === "transactions" && (
+            <TransactionList transactions={transactions} />
+          )}
+          {activeTab === "bills" && <BillList bills={bills} />}
+        </main>
+      </div>
+
       <ChartOfAccountsForm
         open={chartOfAccountsOpen}
         onOpenChange={setChartOfAccountsOpen}
