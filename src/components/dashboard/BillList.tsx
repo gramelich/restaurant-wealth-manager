@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
+import { BillForm } from "./BillForm";
 
 interface BillListProps {
   bills: any[];
 }
 
 export const BillList = ({ bills }: BillListProps) => {
+  const [open, setOpen] = useState(false);
+
   const columns = [
     {
       accessorKey: "due_date",
@@ -29,6 +33,16 @@ export const BillList = ({ bills }: BillListProps) => {
     {
       accessorKey: "category",
       header: "Categoria",
+      cell: ({ row }) => {
+        const category = row.getValue("category");
+        const categories = {
+          moradia: "Moradia",
+          servicos: "Serviços",
+          impostos: "Impostos",
+          outros: "Outros",
+        };
+        return categories[category as keyof typeof categories] || category;
+      },
     },
   ];
 
@@ -44,12 +58,17 @@ export const BillList = ({ bills }: BillListProps) => {
           </p>
         </div>
         <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <Button>Nova Conta</Button>
+          <Button onClick={() => setOpen(true)}>Nova Conta</Button>
         </div>
       </div>
       <div className="mt-8">
         <DataTable columns={columns} data={bills} />
       </div>
+      <BillForm
+        open={open}
+        onOpenChange={setOpen}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 };
