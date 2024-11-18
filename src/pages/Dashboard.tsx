@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [chartOfAccountsOpen, setChartOfAccountsOpen] = useState(false);
   const [paymentMethodOpen, setPaymentMethodOpen] = useState(false);
   const [filter, setFilter] = useState({ date: "", type: "" });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,7 +37,7 @@ const Dashboard = () => {
       .from("transactions")
       .select("*")
       .order("date", { ascending: false })
-      .match(filter); // Aplicando filtro aqui
+      .match(filter);
 
     if (error) {
       toast({
@@ -54,7 +55,7 @@ const Dashboard = () => {
       .from("bills")
       .select("*")
       .order("due_date", { ascending: true })
-      .match(filter); // Aplicando filtro aqui
+      .match(filter);
 
     if (error) {
       toast({
@@ -68,38 +69,40 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-      <div className="flex">
-        <div className="w-1/4 bg-gray-200 p-4">
-          {/* Menu lateral com navegação entre abas */}
-          <Button onClick={() => setActiveTab("overview")}>Dashboard</Button>
+    <div className="min-h-screen flex bg-gray-50">
+      <div className={`bg-gray-200 w-64 p-4 transition-transform ${isSidebarOpen ? 'transform-none' : 'transform -translate-x-full'}`}>
+        <Button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="mb-4">
+          ☰
+        </Button>
+        <div className="space-y-4">
+          <Button onClick={() => setActiveTab("overview")}>Visão Geral</Button>
           <Button onClick={() => setActiveTab("transactions")}>Transações</Button>
           <Button onClick={() => setActiveTab("bills")}>Contas</Button>
         </div>
-        <main className="flex-1 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="mb-6">
-            <input
-              type="date"
-              onChange={(e) => setFilter((prev) => ({ ...prev, date: e.target.value }))}
-            />
-            <select
-              onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
-            >
-              <option value="">Tipo</option>
-              <option value="expense">Despesa</option>
-              <option value="income">Receita</option>
-            </select>
-          </div>
+      </div>
 
-          {activeTab === "overview" && (
-            <Overview transactions={transactions} bills={bills} />
-          )}
-          {activeTab === "transactions" && (
-            <TransactionList transactions={transactions} />
-          )}
-          {activeTab === "bills" && <BillList bills={bills} />}
-        </main>
+      <div className="flex-1 p-6">
+        <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+        
+        <div className="mb-6">
+          <input
+            type="date"
+            onChange={(e) => setFilter((prev) => ({ ...prev, date: e.target.value }))}
+            className="p-2 border rounded"
+          />
+          <select
+            onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
+            className="p-2 border rounded ml-4"
+          >
+            <option value="">Tipo</option>
+            <option value="expense">Despesa</option>
+            <option value="income">Receita</option>
+          </select>
+        </div>
+
+        {activeTab === "overview" && <Overview transactions={transactions} bills={bills} />}
+        {activeTab === "transactions" && <TransactionList transactions={transactions} />}
+        {activeTab === "bills" && <BillList bills={bills} />}
       </div>
 
       <ChartOfAccountsForm
