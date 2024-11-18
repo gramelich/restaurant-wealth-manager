@@ -18,8 +18,12 @@ const Dashboard = () => {
   const [bills, setBills] = useState([]);
   const [chartOfAccountsOpen, setChartOfAccountsOpen] = useState(false);
   const [paymentMethodOpen, setPaymentMethodOpen] = useState(false);
-  const [filter, setFilter] = useState({ date: "", type: "" });
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [filter, setFilter] = useState({
+    startDate: "",
+    endDate: "",
+    account: "",
+    supplier: "",
+  });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,8 +40,11 @@ const Dashboard = () => {
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
-      .order("date", { ascending: false })
-      .match(filter);
+      .gte("date", filter.startDate)
+      .lte("date", filter.endDate)
+      .ilike("account", `%${filter.account}%`)  // Filtro por plano de contas
+      .ilike("supplier", `%${filter.supplier}%`) // Filtro por fornecedor
+      .order("date", { ascending: false });
 
     if (error) {
       toast({
@@ -54,8 +61,11 @@ const Dashboard = () => {
     const { data, error } = await supabase
       .from("bills")
       .select("*")
-      .order("due_date", { ascending: true })
-      .match(filter);
+      .gte("due_date", filter.startDate)
+      .lte("due_date", filter.endDate)
+      .ilike("account", `%${filter.account}%`)  // Filtro por plano de contas
+      .ilike("supplier", `%${filter.supplier}%`) // Filtro por fornecedor
+      .order("due_date", { ascending: true });
 
     if (error) {
       toast({
@@ -68,38 +78,68 @@ const Dashboard = () => {
     }
   };
 
+  const handleFilterChange = (e) => {
+    setFilter({ ...filter, [e.target.name]: e.target.value });
+  };
+
   return (
     <div className="min-h-screen flex bg-gray-50">
-      <div className={`bg-gray-200 w-64 p-4 transition-transform ${isSidebarOpen ? 'transform-none' : 'transform -translate-x-full'}`}>
-        <Button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="mb-4">
-          ☰
-        </Button>
-        <div className="space-y-4">
-          <Button onClick={() => setActiveTab("overview")}>Visão Geral</Button>
-          <Button onClick={() => setActiveTab("transactions")}>Transações</Button>
-          <Button onClick={() => setActiveTab("bills")}>Contas</Button>
-        </div>
+      <div className="bg-gray-200 w-64 p-4">
+        <Button onClick={() => setActiveTab("overview")}>Visão Geral</Button>
+        <Button onClick={() => setActiveTab("transactions")}>Transações</Button>
+        <Button onClick={() => setActiveTab("bills")}>Contas</Button>
       </div>
 
       <div className="flex-1 p-6">
         <DashboardHeader activeTab={activeTab} setActiveTab={setActiveTab} />
-        
-        <div className="mb-6">
-          <input
-            type="date"
-            onChange={(e) => setFilter((prev) => ({ ...prev, date: e.target.value }))}
-            className="p-2 border rounded"
-          />
-          <select
-            onChange={(e) => setFilter((prev) => ({ ...prev, type: e.target.value }))}
-            className="p-2 border rounded ml-4"
-          >
-            <option value="">Tipo</option>
-            <option value="expense">Despesa</option>
-            <option value="income">Receita</option>
-          </select>
+
+        {/* Filtros de data e categoria */}
+        <div className="mb-6 flex space-x-4">
+          <div>
+            <label>Período:</label>
+            <div className="flex space-x-2">
+              <input
+                type="date"
+                name="startDate"
+                value={filter.startDate}
+                onChange={handleFilterChange}
+                className="p-2 border rounded"
+              />
+              <span>até</span>
+              <input
+                type="date"
+                name="endDate"
+                value={filter.endDate}
+                onChange={handleFilterChange}
+                className="p-2 border rounded"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label>Plano de Contas:</label>
+            <input
+              type="text"
+              name="account"
+              value={filter.account}
+              onChange={handleFilterChange}
+              className="p-2 border rounded"
+            />
+          </div>
+
+          <div>
+            <label>Fornecedor:</label>
+            <input
+              type="text"
+              name="supplier"
+              value={filter.supplier}
+              onChange={handleFilterChange}
+              className="p-2 border rounded"
+            />
+          </div>
         </div>
 
+        {/* Exibição das transações e contas */}
         {activeTab === "overview" && <Overview transactions={transactions} bills={bills} />}
         {activeTab === "transactions" && <TransactionList transactions={transactions} />}
         {activeTab === "bills" && <BillList bills={bills} />}
